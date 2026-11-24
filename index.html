@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Chat — Assistente</title>
+<style>
+:root{color-scheme:dark;--bg:#000;--panel:#151515;--panel2:#222;--line:#292929;--muted:#a1a1a1;--text:#f5f5f5;--blue:#3478f6;--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}button,input,textarea{font:inherit}button{color:inherit;border:0;cursor:pointer}#app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#000}
+.topbar{height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #171717}.circle{width:44px;height:44px;border-radius:50%;background:#171717;border:1px solid #303030;display:grid;place-items:center;font-size:22px}.upgrade{height:44px;padding:0 20px;border-radius:28px;background:#171717;border:1px solid #303030;color:#54a9ff;font-weight:750;font-size:17px}.top-title{font-size:20px;font-weight:700}
+.page{flex:1;min-height:0;overflow:auto;display:none}.page.active{display:flex;flex-direction:column}
+.home{justify-content:flex-end;padding:20px 24px 26px}.suggestions{display:flex;flex-direction:column;gap:22px;margin-bottom:22px}.suggestion{display:flex;align-items:center;gap:15px;text-align:left;background:transparent;color:#c9c9c9;font-size:17px;font-weight:600;padding:5px 0}.suggestion .ico{width:27px;font-size:23px;text-align:center;color:#cfcfcf}
+.live-transcript{display:none;flex-shrink:0;margin:8px 16px 0;padding:12px 14px;background:#191919;border:1px solid #383838;border-radius:16px}.live-transcript.show{display:block}.live-head{display:flex;align-items:center;gap:9px;font-size:14px}.record-dot{width:9px;height:9px;border-radius:50%;background:#ff453a;box-shadow:0 0 0 4px #ff453a22;animation:pulse 1.2s infinite}.stop-voice{margin-left:auto;background:#333;border-radius:18px;padding:6px 12px;font-size:13px}.transcript-text{color:#ddd;font-size:15px;line-height:1.4;margin-top:9px;min-height:22px;white-space:pre-wrap}.history-menu{display:none;background:#202020;border:1px solid #393939;border-radius:14px;padding:6px;margin:0 0 8px}.history-menu.show{display:block}.history-menu button{width:100%;padding:11px;text-align:left;background:transparent;border-radius:9px}.history-menu button:active{background:#333}@keyframes pulse{50%{opacity:.35}}\n.composer-wrap{padding:12px 16px calc(12px + var(--safe-bottom));border-top:1px solid #171717;background:#000;flex-shrink:0}.composer{display:flex;align-items:center;gap:10px;min-height:58px;border-radius:32px;background:#171717;border:1px solid #303030;padding:7px 9px 7px 14px;box-shadow:0 1px 2px #333 inset}.composer textarea{flex:1;resize:none;max-height:120px;min-height:28px;background:transparent;border:0;outline:0;color:white;font-size:16px;padding:8px 0;line-height:1.35}.composer textarea::placeholder{color:#777}.iconbtn{width:38px;height:38px;border-radius:50%;background:transparent;display:grid;place-items:center;font-size:24px;flex-shrink:0}.send{background:var(--blue);width:42px;height:42px;border-radius:50%;font-size:20px}.mic{font-size:23px}.send:disabled{opacity:.5}
+.messages{padding:18px 16px 28px;display:flex;flex-direction:column;gap:18px}.msg{max-width:88%;padding:12px 15px;border-radius:20px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}.msg.user{align-self:flex-end;background:#292929}.msg.assistant{align-self:flex-start;background:transparent;padding-left:2px}.attachment{max-width:190px;max-height:180px;border-radius:12px;display:block;margin-top:8px}.audio-chip{display:inline-flex;padding:8px 12px;border-radius:18px;background:#292929;margin-top:6px}
+.page-heading{padding:22px 22px 12px;font-size:27px;font-weight:750}.subtext{padding:0 22px;color:var(--muted);line-height:1.5}.feature-grid{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.feature{min-height:118px;background:#171717;border:1px solid #292929;border-radius:18px;padding:16px;text-align:left}.feature b{display:block;margin:9px 0 5px}.feature span{font-size:13px;color:#aaa}
+.bottomnav{height:68px;flex-shrink:0;padding-bottom:var(--safe-bottom);display:flex;justify-content:center;align-items:center;background:#000;border-top:1px solid #171717}.navchat{background:#315ff0;border-radius:30px;padding:12px 25px;font-size:17px;font-weight:700;display:flex;gap:10px;align-items:center}
+.overlay{position:fixed;inset:0;background:#0009;z-index:10;display:none;align-items:flex-end}.overlay.show{display:flex}.sheet{width:100%;background:#151515;border:1px solid #333;border-radius:28px 28px 0 0;padding:20px 22px calc(24px + var(--safe-bottom));box-shadow:0 -10px 40px #0009}.sheet-title{font-size:18px;font-weight:700;margin:0 0 16px}.sheet-row{width:100%;display:flex;align-items:center;gap:18px;padding:12px 0;background:transparent;text-align:left;font-size:19px}.sheet-icon{width:52px;height:52px;border-radius:50%;background:#252525;display:grid;place-items:center;font-size:24px}
+.sidebar{position:fixed;inset:0 auto 0 0;width:min(86vw,360px);background:#050505;z-index:20;transform:translateX(-105%);transition:transform .22s ease;padding:25px 20px calc(20px + var(--safe-bottom));display:flex;flex-direction:column;border-right:1px solid #222}.sidebar.open{transform:translateX(0)}.sidehead{display:flex;justify-content:space-between;align-items:center;font-size:25px;font-weight:750;margin-bottom:25px}.sideitem{display:flex;gap:16px;align-items:center;background:transparent;text-align:left;padding:13px 4px;font-size:18px;font-weight:600}.sideitem .ico{width:30px;text-align:center;font-size:22px}.history{border-top:1px solid #333;margin-top:24px;padding-top:18px;overflow:auto;flex:1}.history button{display:block;width:100%;text-align:left;background:transparent;padding:13px 0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.profile{display:flex;align-items:center;gap:12px;margin-top:15px;padding:10px}.avatar{width:42px;height:42px;border-radius:50%;background:#0b9c87;display:grid;place-items:center}
+.modal{position:fixed;inset:0;background:#000d;z-index:30;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-card{width:min(100%,520px);background:#171717;border:1px solid #333;border-radius:22px;padding:18px}.modal-card video{width:100%;border-radius:14px;background:#000;max-height:55vh}.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}.pill{padding:11px 16px;border-radius:24px;background:#333}.primary{background:var(--blue)}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #333}.switch{width:48px;height:28px;border-radius:20px;background:#444;padding:3px}.switch:after{content:"";display:block;width:22px;height:22px;border-radius:50%;background:white;transition:.2s}.switch.on{background:#2674ed}.switch.on:after{transform:translateX(20px)}
+@media(min-width:700px){.home{max-width:780px;width:100%;align-self:center}.composer-wrap{width:100%;max-width:820px;align-self:center;border:0}.messages{width:100%;max-width:820px;align-self:center}.topbar{padding:0 max(22px,calc((100vw - 820px)/2))}.suggestions{margin-bottom:30px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button class="circle" id="menuBtn" aria-label="Abrir menu">☰</button>
+    <button class="upgrade" id="upgradeBtn">✦ Fazer upgrade</button>
+    <button class="circle" id="newTopBtn" aria-label="Histórico e opções">⋯</button>
+  </header>
+
+  <main id="chatPage" class="page active">
+    <section id="homeView" class="home page active">
+      <div class="suggestions">
+        <button class="suggestion" data-prompt="Me ensine alguma coisa interessante."><span class="ico">♧</span>Aprender alguma coisa</button>
+        <button class="suggestion" data-page="images"><span class="ico">▧</span>Crie uma imagem</button>
+        <button class="suggestion" data-prompt="Ajude-me a escrever ou editar um texto."><span class="ico">✎</span>Escreva ou edite</button>
+        <button class="suggestion" data-search="true"><span class="ico">◎</span>Pesquise na web</button>
+      </div>
+    </section>
+    <section id="messageView" class="messages" style="display:none"></section>
+  </main>
+
+  <main id="imagesPage" class="page">
+    <div class="page-heading">Imagens</div>
+    <p class="subtext">Descreva a imagem que você quer criar. A geração real precisa de uma integração com um serviço de imagens.</p>
+    <div style="padding:20px"><textarea id="imagePrompt" placeholder="Descreva sua imagem..." style="width:100%;min-height:120px;background:#171717;color:white;border:1px solid #333;border-radius:16px;padding:14px;resize:vertical"></textarea><button class="pill primary" id="imageSubmit" style="margin-top:12px">Criar imagem</button></div>
+  </main>
+  <main id="explorePage" class="page">
+    <div class="page-heading">Explorar</div><p class="subtext">Atalhos para descobrir ferramentas e ideias.</p>
+    <div class="feature-grid">
+      <button class="feature" data-prompt="Ajude-me a estudar um assunto.">🎓<b>Aprender</b><span>Explicações e estudos</span></button>
+      <button class="feature" data-page="images">🎨<b>Imagens</b><span>Criação visual</span></button>
+      <button class="feature" data-search="true">🌐<b>Pesquisar</b><span>Buscar na web</span></button>
+      <button class="feature" data-prompt="Me ajude a planejar uma tarefa.">🗓️<b>Planejar</b><span>Organize suas ideias</span></button>
+    </div>
+  </main>
+  <main id="scheduledPage" class="page"><div class="page-heading">Agendado</div><p class="subtext">Seus lembretes e tarefas agendadas aparecerão aqui. Esta demonstração ainda não sincroniza agendamentos.</p></main>
+  <main id="libraryPage" class="page"><div class="page-heading">Biblioteca</div><p class="subtext">Arquivos e conteúdos salvos nesta demonstração ficam disponíveis no histórico local do navegador.</p></main>
+  <main id="personalizePage" class="page"><div class="page-heading">Personalizar</div><div style="padding:20px"><div class="toggle-row">Tema escuro <span class="switch on"></span></div><div class="toggle-row">Salvar conversas neste aparelho <span class="switch on"></span></div></div></main>
+
+  <div id="liveTranscript" class="live-transcript" aria-live="polite"><div class="live-head"><span class="record-dot"></span><b>Ouvindo você</b><button id="stopVoiceBtn" class="stop-voice">Parar</button></div><div id="transcriptText" class="transcript-text">Sua fala aparecerá aqui enquanto você fala…</div></div>
+  <footer class="composer-wrap" id="composerWrap">
+    <div class="composer">
+      <button class="iconbtn" id="plusBtn" aria-label="Anexar">＋</button>
+      <textarea id="promptInput" rows="1" placeholder="Perguntar ao ChatGPT"></textarea>
+      <button class="iconbtn mic" id="voiceBtn" aria-label="Entrada por voz">♩</button>
+      <button class="iconbtn send" id="sendBtn" aria-label="Enviar">↑</button>
+    </div>
+  </footer>
+</div>
+
+<div class="overlay" id="plusOverlay">
+  <div class="sheet">
+    <p class="sheet-title">Adicionar ao chat</p>
+    <button class="sheet-row" id="cameraOption"><span class="sheet-icon">▣</span>Câmera</button>
+    <button class="sheet-row" id="photosOption"><span class="sheet-icon">▧</span>Fotos</button>
+    <button class="sheet-row" id="filesOption"><span class="sheet-icon">📎</span>Arquivos</button>
+    <button class="sheet-row" id="pluginsOption"><span class="sheet-icon">♧</span>Plugins</button>
+    <button class="sheet-row" id="thinkOption"><span class="sheet-icon">◉</span><span>Pensar bastante <small id="thinkState" style="color:#aaa">Desativado</small></span></button>
+  </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidehead"><span>ChatGPT</span><div style="display:flex;gap:8px"><button class="circle" id="historyMoreBtn" aria-label="Mais opções">⋯</button><button class="circle" id="closeSide">×</button></div></div>
+  <div class="history-menu" id="historyMenu"><button id="newFromHistory">＋　Novo chat</button></div>
+  <button class="sideitem" data-page="images"><span class="ico">◉</span>Imagens</button>
+  <button class="sideitem" data-page="scheduled"><span class="ico">◷</span>Agendado</button>
+  <button class="sideitem" data-page="library"><span class="ico">▤</span>Biblioteca</button>
+  <button class="sideitem" data-page="personalize"><span class="ico">☷</span>Personalizar</button>
+  <button class="sideitem" data-page="explore"><span class="ico">⠿</span>Explorar</button>
+  <div class="history"><div style="color:#888;font-size:13px;padding:8px 0">Conversas</div><div id="historyList"></div></div>
+  <div class="profile"><div class="avatar">BV</div><b>Perfil</b></div>
+</div>
+
+<div class="modal" id="cameraModal">
+  <div class="modal-card"><h2 style="margin:0 0 12px">Câmera</h2><video id="cameraVideo" autoplay playsinline></video><div class="modal-actions"><button class="pill" id="closeCamera">Fechar</button><button class="pill primary" id="capturePhoto">Tirar foto</button></div></div>
+</div>
+<input type="file" id="photoPicker" accept="image/*" multiple hidden>
+<input type="file" id="filePicker" multiple hidden>
+<input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden>
+
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ const pages = ['chatPage','imagesPage','explorePage','scheduledPage','libraryPage','personalizePage'];
+ let conversations = JSON.parse(localStorage.getItem('demo_chats_v1') || '[]');
+ let current = null, attachments = [], stream = null, recognition = null, thinking = false;
+ const save = () => localStorage.setItem('demo_chats_v1', JSON.stringify(conversations));
+ function newChat(){
+   current = {id:Date.now(),title:'Novo chat',messages:[]}; conversations.unshift(current); save();
+   $('homeView').style.display='flex'; $('messageView').style.display='none'; $('messageView').innerHTML='';
+   $('promptInput').value=''; attachments=[]; renderHistory(); showPage('chatPage'); $('promptInput').focus();
+ }
+ function showPage(id){
+   pages.forEach(p=>$(p).classList.toggle('active',p===id));
+   $('composerWrap').style.display = ['chatPage','imagesPage'].includes(id)?'block':'none';
+   $('sidebar').classList.remove('open');
+ }
+ function renderHistory(){
+   $('historyList').innerHTML='';
+   conversations.slice(0,35).forEach(c=>{
+     const b=document.createElement('button'); b.textContent=c.title||'Novo chat';
+     b.onclick=()=>openChat(c.id); $('historyList').appendChild(b);
+   });
+ }
+ function openChat(id){
+   current=conversations.find(c=>c.id===id); if(!current)return;
+   $('homeView').style.display=current.messages.length?'none':'flex';
+   $('messageView').style.display=current.messages.length?'flex':'none';
+   $('messageView').innerHTML=''; current.messages.forEach(renderMessage); showPage('chatPage');
+ }
+ function renderMessage(m){
+   const el=document.createElement('div'); el.className='msg '+m.role; el.textContent=m.text||'';
+   (m.files||[]).forEach(f=>{
+     if(f.type.startsWith('image/')){const img=document.createElement('img');img.src=f.data;img.className='attachment';el.appendChild(img)}
+     else {const a=document.createElement('div');a.className='audio-chip';a.textContent='📎 '+f.name;el.appendChild(a)}
+   });
+   $('messageView').appendChild(el); $('messageView').scrollTop=$('messageView').scrollHeight;
+ }
+ function addMessage(role,text,files=[]){
+   if(!current)newChat();
+   const m={role,text,files}; current.messages.push(m);
+   if(current.messages.length===1)current.title=(text||'Anexo').slice(0,34);
+   save(); $('homeView').style.display='none'; $('messageView').style.display='flex'; renderMessage(m);renderHistory();
+ }
+ async function send(){
+   const text=$('promptInput').value.trim(); if(!text&&!attachments.length)return;
+   const files=attachments.slice(); attachments=[]; $('promptInput').value='';
+   addMessage('user',text,files);
+   addMessage('assistant','A interface está funcionando. Para receber respostas reais de IA, conecte este HTML a um servidor/API de IA; este arquivo sozinho não acessa o serviço interno do ChatGPT.');
+ }
+ $('sendBtn').onclick=send;
+ $('promptInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+ $('promptInput').addEventListener('input',e=>{e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'});
+ $('menuBtn').onclick=()=>$('sidebar').classList.add('open');
+ $('closeSide').onclick=()=>$('sidebar').classList.remove('open');
+ $('upgradeBtn').onclick=()=>alert('O botão de upgrade é apenas visual nesta demonstração.');
+ $('plusBtn').onclick=()=>$('plusOverlay').classList.add('show');
+ $('plusOverlay').onclick=e=>{if(e.target===$('plusOverlay'))$('plusOverlay').classList.remove('show')};
+ document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{showPage('chatPage');$('promptInput').value=b.dataset.prompt;$('promptInput').focus();});
+ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>showPage(b.dataset.page+'Page'));
+ document.querySelectorAll('[data-search]').forEach(b=>b.onclick=()=>{const q=prompt('O que você quer pesquisar?');if(q)window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');});
+ $('cameraOption').onclick=async()=>{
+   $('plusOverlay').classList.remove('show');
+   if(!navigator.mediaDevices?.getUserMedia){$('cameraPicker').click();return}
+   try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});$('cameraVideo').srcObject=stream;$('cameraModal').classList.add('show')}
+   catch(e){alert('Não foi possível abrir a câmera. Verifique a permissão do navegador.');}
+ };
+ function stopCamera(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('cameraModal').classList.remove('show')}
+ $('closeCamera').onclick=stopCamera;
+ $('capturePhoto').onclick=()=>{
+   const v=$('cameraVideo'),c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);
+   attachments.push({name:'foto-camera.jpg',type:'image/jpeg',data:c.toDataURL('image/jpeg',.85)});stopCamera();showAttachmentNotice();
+ };
+ $('photosOption').onclick=()=>{$('plusOverlay').classList.remove('show');$('photoPicker').click()};
+ $('filesOption').onclick=()=>{$('plusOverlay').classList.remove('show');$('filePicker').click()};
+ $('cameraPicker').onchange=e=>handleFiles(e.target.files);
+ $('photoPicker').onchange=e=>handleFiles(e.target.files);
+ $('filePicker').onchange=e=>handleFiles(e.target.files);
+ function handleFiles(list){[...list].forEach(f=>{const r=new FileReader();r.onload=()=>{attachments.push({name:f.name,type:f.type||'application/octet-stream',data:f.type.startsWith('image/')?r.result:null});showAttachmentNotice()};r.readAsDataURL(f)});}
+ function showAttachmentNotice(){ $('promptInput').placeholder=attachments.length+' anexo(s) pronto(s) — escreva uma mensagem'; }
+ $('pluginsOption').onclick=()=>{$('plusOverlay').classList.remove('show');alert('Plugins: conectores externos não estão disponíveis neste HTML independente.');};
+ $('thinkOption').onclick=()=>{thinking=!thinking;$('thinkState').textContent=thinking?'Ativado':'Desativado';$('plusOverlay').classList.remove('show')};
+ $('imageSubmit').onclick=()=>{const t=$('imagePrompt').value.trim();if(!t)return;showPage('chatPage');$('promptInput').value='Crie uma imagem: '+t;$('promptInput').focus();};
+ let micStream=null, mediaRecorder=null, recordedChunks=[], finalTranscript='';
+ async function startVoice(){
+   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+   try{
+     // Ask for microphone permission first. Keep the stream open while recording.
+     micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+   }catch(err){
+     alert('Permita o acesso ao microfone para usar a gravação de voz.');
+     return;
+   }
+   $('liveTranscript').classList.add('show');
+   $('transcriptText').textContent='Pode começar a falar…';
+   $('voiceBtn').textContent='■';
+   finalTranscript='';
+   recordedChunks=[];
+   try{
+     mediaRecorder=new MediaRecorder(micStream);
+     mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
+     mediaRecorder.start();
+   }catch(err){ /* Speech transcription can still work if MediaRecorder is unavailable. */ }
+   if(!SR){
+     $('transcriptText').textContent='Gravação ativa. A transcrição ao vivo não é compatível com este navegador; você pode parar a gravação quando terminar.';
+     return;
+   }
+   recognition=new SR();
+   recognition.lang='pt-BR';
+   recognition.continuous=true;
+   recognition.interimResults=true;
+   recognition.onresult=e=>{
+     let interim='';
+     for(let i=e.resultIndex;i<e.results.length;i++){
+       const phrase=e.results[i][0].transcript;
+       if(e.results[i].isFinal) finalTranscript+=phrase+' ';
+       else interim+=phrase;
+     }
+     $('transcriptText').textContent=(finalTranscript+interim).trim()||'Ouvindo você…';
+     $('promptInput').value=(finalTranscript+interim).trim();
+   };
+   recognition.onerror=e=>{
+     if(e.error!=='no-speech'&&e.error!=='aborted')
+       $('transcriptText').textContent='A gravação continua, mas a transcrição foi interrompida. Você pode parar e enviar o texto capturado.';
+   };
+   recognition.onend=()=>{
+     // Some browsers stop speech recognition automatically; restart while the mic session is active.
+     if(micStream && $('liveTranscript').classList.contains('show')){
+       try{recognition.start()}catch(e){}
+     }
+   };
+   try{recognition.start()}catch(e){}
+ }
+ function stopVoice(){
+   if(recognition){const r=recognition;recognition=null;try{r.onend=null;r.stop()}catch(e){}}
+   if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop()}catch(e){}}
+   if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}
+   $('liveTranscript').classList.remove('show');
+   $('voiceBtn').textContent='♩';
+   if(finalTranscript.trim()) $('promptInput').value=finalTranscript.trim();
+   mediaRecorder=null;
+ }
+ $('voiceBtn').onclick=()=>{if(micStream)stopVoice();else startVoice()};
+ $('stopVoiceBtn').onclick=stopVoice;
+ $('historyMoreBtn').onclick=()=>$('historyMenu').classList.toggle('show');
+ $('newFromHistory').onclick=()=>{$('historyMenu').classList.remove('show');newChat()};
+ $('newTopBtn').onclick=()=>$('sidebar').classList.add('open');
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&micStream)stopVoice()});
+ renderHistory();
+ if(conversations.length){current=conversations[0];if(current.messages.length)openChat(current.id);else newChat()}else newChat();
+})();
+</script>
+</body>
+</html>
